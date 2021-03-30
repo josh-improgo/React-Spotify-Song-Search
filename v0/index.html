@@ -1,0 +1,168 @@
+<!-- Initial One Page Website -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify API 2</title>
+    <style>
+        body,
+        html {
+            background-color: #1d2126;
+            color: white;
+            font-family: Circular, Helvetica, Arial, sans-serif;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 2fr 9fr 2fr;
+            grid-template-rows: 100px;
+            grid-auto-rows: 50px;
+        }
+
+        .tracks {
+            grid-column: 2;
+            grid-row: 3;
+        }
+
+        .tracks>div {
+            margin: 20px 0px;
+            background-color: #30363f;
+            padding: 10px;
+            border-radius: 500px;
+            padding-left: 20px;
+        }
+
+        .title {
+            grid-column: 2;
+            grid-row: 1 / -1;
+        }
+
+        .label {
+            grid-row: 2;
+            justify-self: center;
+            align-self: center;
+        }
+
+        #search {
+            grid-row: 2;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding-left: 20px;
+            
+        }
+
+        #search:focus {
+            outline: none;
+        }
+
+        .button {
+            grid-row: 2;
+            border: 1px solid #116e32;
+            border-radius: 500px;
+            background-color: #1db954;
+            color: white;
+            text-transform: uppercase;
+            margin: 0 20px;
+            font-family: Circular, Helvetica, Arial, sans-serif;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .button:hover {
+            cursor: pointer;
+            background-color: #1ed760;
+
+        }
+
+        a {
+            text-decoration: none;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="content">
+        <h1 class="title">Spotify Song Search</h1>
+
+        <label class="label" htmlFor="search">
+            Song Name:
+        </label>
+        <input id="search" name="search" type="text" placeholder="i.e. Gravity - Timeflies" />
+        <button class="button" onclick="handleClick()">Search</button>
+        <div class="tracks">
+
+        </div>
+    </div>
+    <script>
+        /**
+         * https://developer.spotify.com/console/get-search-item/?q=Test&type=track&market=&limit=&offset=&include_external=
+         * 
+         * API Docs - https://developer.spotify.com/console/get-search-item
+         * Task:
+         * Build a search interface that will allow users to dynamically search Spotify's ...
+         * Display the results to the user
+         */
+        const input = document.querySelector('#search')
+        const tracksDiv = document.querySelector('.tracks')
+
+        const token = 'YOUR_API_TOKEN_HERE'
+        const handleClick = async () => {
+            const url = 'https://api.spotify.com/v1/search?'
+            const type = 'type=track'
+            const market = 'market=US'
+            const limit = 'limit=10'
+            const queryParams = 'q=' + input.value
+            const endPoint = `${url}${queryParams}&${type}&${market}&${limit}`
+            // fetch(endPoint, {
+            //     method: 'GET',
+            //     headers: {
+            //         Accept: 'application/json',
+            //         'Content-Type': 'application/json',
+            //         Authorization: 'Bearer ' + token, 
+            //     }
+            // })
+            //     .then(response => response.json())
+            //     .then(responseJson => console.log(responseJson))
+
+            const response = await fetch(endPoint, {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + token,
+                }
+            })
+
+            const jsonResponse = await response.json();
+
+            tracksDiv.innerHTML = ''
+
+            console.log(jsonResponse)
+            jsonResponse["tracks"]["items"].map(item => {
+                tracksDiv.insertAdjacentElement('beforeend', createTrack(item))
+            })
+        }
+
+        const createTrack = ({ name, artists, external_urls }) => {
+            let trackDiv = document.createElement('div')
+            trackDiv.className = 'track'
+            trackDiv.innerHTML = `<a href="${external_urls["spotify"]}">${name} by ${artists.map(({ name }) => name).join(', ')}</a>`
+            return trackDiv;
+        }
+
+        input.addEventListener("keyup", event => {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                handleClick();
+            }
+        })
+
+    </script>
+</body>
+
+</html>
